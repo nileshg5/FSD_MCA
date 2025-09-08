@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Online Auction App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-6">
+  <div class="max-w-3xl mx-auto">
+    <h1 class="text-2xl font-bold mb-4 text-center">Online Auction App</h1>
+
+    <!-- Filter Section -->
+    <div class="flex flex-wrap gap-4 mb-6">
+      <input id="itemFilter" type="text" placeholder="Item name" class="border rounded px-4 py-2" />
+
+      <select id="categoryFilter" class="border rounded px-4 py-2">
+        <option value="">All Categories</option>
+        <option value="watches">Watches</option>
+        <option value="antiques">Antiques</option>
+        <option value="art">Art</option>
+        <option value="musical instruments">Musical Instruments</option>
+        <option value="collectibles">Collectibles</option>
+      </select>
+
+      <input id="maxBidFilter" type="number" placeholder="Max Bid" min="0" class="border rounded px-4 py-2" />
+
+      <select id="statusFilter" class="border rounded px-4 py-2">
+        <option value="">All Status</option>
+        <option value="open">Open</option>
+        <option value="closed">Closed</option>
+      </select>
+
+      <button id="filterBtn" class="bg-blue-600 text-white rounded px-6 py-2 hover:bg-blue-700">Filter</button>
+    </div>
+
+    <!-- Data Display -->
+    <div id="dataGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+  </div>
+
+  <script>
+    const API_URL = 'http://localhost:9000/api';
+    const dataGrid = document.getElementById('dataGrid');
+    const itemFilter = document.getElementById('itemFilter');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const maxBidFilter = document.getElementById('maxBidFilter');
+    const statusFilter = document.getElementById('statusFilter');
+    const filterBtn = document.getElementById('filterBtn');
+
+    function fetchData() {
+      let url = API_URL + '?';
+      if (itemFilter.value) url += `item=${encodeURIComponent(itemFilter.value)}&`;
+      if (categoryFilter.value) url += `category=${encodeURIComponent(categoryFilter.value)}&`;
+      if (maxBidFilter.value) url += `maxBid=${encodeURIComponent(maxBidFilter.value)}&`;
+      if (statusFilter.value) url += `status=${encodeURIComponent(statusFilter.value)}&`;
+
+      fetch(url)
+        .then(res => res.json())
+        .then(items => {
+          dataGrid.innerHTML = '';
+          if (items.length === 0) {
+            dataGrid.innerHTML = '<div class="col-span-2 text-center text-gray-600">No auctions found.</div>';
+            return;
+          }
+          items.forEach(item => {
+            dataGrid.innerHTML += `
+              <div class="bg-white p-4 rounded shadow">
+                <h2 class="text-lg font-semibold">${item.item} (${item.category})</h2>
+                <p class="text-gray-600">Current Bid: <span class="font-semibold">₹${item.currentBid}</span></p>
+                <p class="text-gray-500">Status: ${item.status}</p>
+              </div>
+            `;
+          });
+        });
+    }
+
+    // Initial fetch
+    fetchData();
+
+    // Filter button
+    filterBtn.addEventListener('click', fetchData);
+  </script>
+</body>
+</html>
