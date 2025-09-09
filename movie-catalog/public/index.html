@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Movie Catalog</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+</head>
+<body class="bg-gray-100 min-h-screen">
+  
+  <!-- Header -->
+  <h1 class="text-4xl font-bold text-center text-indigo-600 py-6">
+    🎬 Movie Catalog
+  </h1>
+
+  <!-- Add Movie Form -->
+  <div class="max-w-lg mx-auto bg-white shadow-md rounded-lg p-6 mb-8">
+    <h2 class="text-2xl font-semibold mb-4 text-indigo-700">➕ Add Movie</h2>
+    <form id="addMovieForm" class="space-y-4">
+      <input type="text" id="title" placeholder="Title" class="w-full p-2 border rounded" required>
+      <input type="text" id="director" placeholder="Director" class="w-full p-2 border rounded" required>
+      <input type="text" id="genre" placeholder="Genre" class="w-full p-2 border rounded">
+      <input type="number" id="release_year" placeholder="Release Year" class="w-full p-2 border rounded">
+      <input type="number" step="0.1" id="rating" placeholder="Rating (0-10)" class="w-full p-2 border rounded">
+      <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition">
+        Add Movie
+      </button>
+    </form>
+  </div>
+
+  <!-- Movie Grid -->
+  <div id="movies" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-6"></div>
+
+  <script>
+    // Fetch all movies
+    async function fetchMovies() {
+      try {
+        const res = await fetch("/movies");
+        const data = await res.json();
+        const container = document.getElementById("movies");
+        container.innerHTML = "";
+
+        data.forEach(movie => {
+          container.innerHTML += `
+            <div class="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition">
+              <h2 class="text-2xl font-semibold text-indigo-700 mb-2">${movie.title}</h2>
+              <p class="text-gray-700"><b>Director:</b> ${movie.director}</p>
+              <p class="text-gray-700"><b>Genre:</b> ${movie.genre}</p>
+              <p class="text-gray-700"><b>Year:</b> ${movie.release_year}</p>
+              <p class="text-yellow-600 font-bold">⭐ ${movie.rating}</p>
+              <button onclick="deleteMovie(${movie.id})"
+                class="mt-4 bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition">
+                🗑 Delete
+              </button>
+            </div>
+          `;
+        });
+      } catch (err) {
+        console.error("Error fetching movies:", err);
+      }
+    }
+
+    // Add new movie
+    document.getElementById("addMovieForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const newMovie = {
+        title: document.getElementById("title").value,
+        director: document.getElementById("director").value,
+        genre: document.getElementById("genre").value,
+        release_year: document.getElementById("release_year").value,
+        rating: document.getElementById("rating").value
+      };
+
+      await fetch("/movies", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newMovie)
+      });
+
+      e.target.reset();
+      fetchMovies(); // refresh list
+    });
+
+    // Delete movie
+    async function deleteMovie(id) {
+      await fetch(`/movies/${id}`, { method: "DELETE" });
+      fetchMovies();
+    }
+
+    // Initial load
+    fetchMovies();
+  </script>
+
+</body>
+</html>
